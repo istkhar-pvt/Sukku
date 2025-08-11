@@ -23,7 +23,7 @@ BOT_NAME = getenv("BOT_NAME")
 ASSUSERNAME = getenv("ASSUSERNAME")
 # ---------------------------------------------------------
 # API URL - here
-API_URL = getenv("API_URL", "https://tgmusic.fallenapi.fun")
+API_URL = getenv("API_URL", "https://tgmusic.fallenapi.fun/get_track")
 
 # API KEY - here
 API_KEY = getenv("API_KEY", "86278b_ssueajhR0D5XCET9n3HGIr0y57w2BZeR")
