@@ -26,7 +26,7 @@ ASSUSERNAME = getenv("ASSUSERNAME")
 API_URL = getenv("API_URL", "https://tgmusic.fallenapi.fun/get_track")
 
 # API KEY - here
-API_KEY = getenv("API_KEY", "86278b_ssueajhR0D5XCET9n3HGIr0y57w2BZeR")
+API_KEY = getenv("API_KEY", None) #for api key contact @its_deep_ydv
 
 # For - downloads
 DOWNLOADS_DIR = "downloads"
