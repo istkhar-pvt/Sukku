@@ -23,10 +23,7 @@ BOT_NAME = getenv("BOT_NAME")
 ASSUSERNAME = getenv("ASSUSERNAME")
 # ---------------------------------------------------------
 # API URL - here
-API_URL = getenv("API_URL", "https://tgmusic.fallenapi.fun")
-
-# API KEY - here
-API_KEY = getenv("API_KEY", None) #for api key contact @its_deep_ydv
+API_URL = "https://BabyAPI.Pro"
 
 # For - downloads
 DOWNLOADS_DIR = "downloads"
