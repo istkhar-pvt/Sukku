@@ -174,9 +174,8 @@ queue_6 : "<b>🕚 ᴅᴜʀᴀᴛɪᴏɴ :</b> ᴜɴᴋɴᴏᴡɴ ᴅᴜʀᴀᴛ
 queue_7 : "\nᴄʟɪᴄᴋ ᴏɴ ʙᴜᴛᴛᴏɴ ʙᴇʟᴏᴡ ᴛᴏ ɢᴇᴛ ᴡʜᴏʟᴇ ǫᴜᴇᴜᴇᴅ ʟɪsᴛ."
 queue_8 : "<b>{0} ᴘʟᴀʏᴇʀ</b>\n\n🎄 <b>sᴛʀᴇᴀᴍɪɴɢ :</b> {1}\n\n🔗 <b>sᴛʀᴇᴀᴍ ᴛʏᴘᴇ :</b> {2}\n🥀 <b>ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> {3}\n{4}"
 
-stream_1 : "➲ <b>Sᴛᴀʀᴛᴇᴅ Sᴛʀᴇᴀᴍɪɴɢ |</b>\n\n<b>‣ Tɪᴛʟᴇ :</b> <a href={0}>{1}</a>\n<b>‣ Dᴜʀᴀᴛɪᴏɴ :</b> {2} ᴍɪɴᴜᴛᴇs\n<b>‣ Rᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> {3}\n\n๏ ᴘᴏᴡᴇʀᴇᴅ ʙʏ ➠ [꯭𓄂꯭𝄂꯭꯭꯭꯭᪳🅳⃞꯭꯭𝝴꯭፝֟͝𝝴𝞀꯭꯭᪳𝄃꯭༊](https://t.me/kingdk88)"
-stream_2 : "➲ <b>Sᴛᴀʀᴛᴇᴅ Sᴛʀᴇᴀᴍɪɴɢ |</b>\n\n<b>‣ Sᴛʀᴇᴀᴍ ᴛʏᴘᴇ :</b> ʟɪᴠᴇ sᴛʀᴇᴀᴍ [ᴜʀʟ]\n<b>‣ Rᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> {0}\n\n๏ ᴘᴏᴡᴇʀᴇᴅ ʙʏ ➠ [꯭𓄂꯭𝄂꯭꯭꯭꯭᪳🅳⃞꯭꯭𝝴꯭፝֟͝𝝴𝞀꯭꯭᪳𝄃꯭༊](https://t.me/Kingdk88)"
-
+stream_1 : "<b><blockquote>✮ 𝐒ʈᴧʀʈ𝛆ɗ 𝐒ʈʀ𝛆ɑɱɩŋʛ 𝐍๏Ꮗ ✮</blockquote></b>\n<blockquote><b>✯ 𝐓ɩttɭ𝛆 »</b> <a href={0}>{1}</a>\n<b>✬ 𝐃ʋɽɑʈɩσŋ »</b> {2} 𝐌ɪηᴜᴛєs\n<b>✭ 𝐁ɣ »</b> {3}</blockquote>\n<blockquote><b>❖  𝐌ᴧᴅє  𝐁ɣ ➛  [𝛊 𝛅 𝜏 ƙ н 𝛂 𝐫](t.me/Iamistkhar)</b></blockquote>"
+stream_2 : "<b><blockquote>✮ 𝐒ʈᴧʀʈ𝛆ɗ 𝐒ʈʀ𝛆ɑɱɩŋʛ 𝐍๏Ꮗ ✮</blockquote></b>\n<blockquote><b>❍ 𝛅ᴛʀєᴧϻ ᴛʏᴘᴇ :</b> ʟɪᴠᴇ sᴛʀᴇᴀᴍ [ᴜʀʟ]\n<b>✭ 𝐁ɣ »</b> {0}</blockquote>"
 
 CLOSE_BUTTON  : "🗑ᴄʟᴏsᴇ🗑"
 BACK_BUTTON : "ʙᴀᴄᴋ"
