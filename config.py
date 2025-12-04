@@ -24,7 +24,8 @@ ASSUSERNAME = getenv("ASSUSERNAME")
 # ---------------------------------------------------------
 
 # ---------------------------------------------------------
-API_URL = "https://BabyAPI.Pro"
+API_URL = getenv("API_URL", 'https://api.thequickearn.xyz') #youtube song url
+API_KEY = getenv("API_KEY", 'NxGBNexGenBots4556e3') # youtube song api ke # -------------------------------------------------------------------------#
 #---------------------------------------------------------------
 
 # For - downloads
