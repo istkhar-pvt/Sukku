@@ -1,201 +1,133 @@
-import asyncio, os, re, httpx, aiofiles.os
-from io import BytesIO 
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
-from aiofiles.os import path as aiopath
+import os
+import re
+import aiofiles
+import aiohttp
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 from youtubesearchpython.__future__ import VideosSearch
+from config import YOUTUBE_IMG_URL
 
-from ..logging import LOGGER
+# Constants
+CACHE_DIR = "cache"
+os.makedirs(CACHE_DIR, exist_ok=True)
 
-def load_fonts():
-    try:
-        return {
-            "cfont": ImageFont.truetype("SystemMusic/assets/cfont.ttf", 24),
-            "tfont": ImageFont.truetype("SystemMusic/assets/font.ttf", 30),
-        }
-    except Exception as e:
-        LOGGER.error("Font loading error: %s, using default fonts", e)
-        return {
-            "cfont": ImageFont.load_default(),
-            "tfont": ImageFont.load_default(),
-        }
+PANEL_W, PANEL_H = 763, 545
+PANEL_X = (1280 - PANEL_W) // 2
+PANEL_Y = 88
+TRANSPARENCY = 170
+INNER_OFFSET = 36
 
-FONTS = load_fonts()
+THUMB_W, THUMB_H = 542, 273
+THUMB_X = PANEL_X + (PANEL_W - THUMB_W) // 2
+THUMB_Y = PANEL_Y + INNER_OFFSET
 
+TITLE_X = 377
+META_X = 377
+TITLE_Y = THUMB_Y + THUMB_H + 10
+META_Y = TITLE_Y + 45
 
-FALLBACK_IMAGE_PATH = "SystemMusic/assets/controller.png"
+BAR_X, BAR_Y = 388, META_Y + 45
+BAR_RED_LEN = 280
+BAR_TOTAL_LEN = 480
 
-YOUTUBE_IMG_URL = "https://i.ytimg.com/vi/default.jpg"
+ICONS_W, ICONS_H = 415, 45
+ICONS_X = PANEL_X + (PANEL_W - ICONS_W) // 2
+ICONS_Y = BAR_Y + 48
 
-async def resize_youtube_thumbnail(img: Image.Image) -> Image.Image:
-    target_width, target_height = 1280, 720
-    aspect_ratio = img.width / img.height
-    target_ratio = target_width / target_height
+MAX_TITLE_WIDTH = 580
 
-    if aspect_ratio > target_ratio:
-        new_height = target_height
-        new_width = int(new_height * aspect_ratio)
-    else:
-        new_width = target_width
-        new_height = int(new_width / aspect_ratio)
-
-    img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-    left = (new_width - target_width) // 2
-    top = (new_height - target_height) // 2
-    right = left + target_width
-    bottom = top + target_height
-
-    img = img.crop((left, top, right, bottom))
-    enhanced = ImageEnhance.Sharpness(img).enhance(1.5)
-    img.close()
-    return enhanced
-
-async def fetch_image(url: str) -> Image.Image:
-    async with httpx.AsyncClient() as client:
-        try:
-            if not url:
-                raise ValueError("No thumbnail URL provided")
-            response = await client.get(url, timeout=5)
-            response.raise_for_status()
-            img = Image.open(BytesIO(response.content)).convert("RGBA")
-            if url.startswith("https://i.ytimg.com"):
-                img = await resize_youtube_thumbnail(img)
-            else:
-                img.close()
-                img = Image.new("RGBA", (1280, 720), (255, 255, 255, 255))
-            return img
-        except Exception as e:
-            LOGGER.error("Image loading error for URL %s: %s", url, e)
-            try:
-                response = await client.get(YOUTUBE_IMG_URL, timeout=5)
-                response.raise_for_status()
-                img = Image.open(BytesIO(response.content)).convert("RGBA")
-                img = await resize_youtube_thumbnail(img)
-                return img
-            except Exception as e:
-                LOGGER.error("YouTube fallback image error: %s", e)
-                try:
-                    async with aiofiles.open(FALLBACK_IMAGE_PATH, mode="rb") as f:
-                        img = Image.open(BytesIO(await f.read())).convert("RGBA")
-                    img = await resize_youtube_thumbnail(img)
-                    return img
-                except Exception as e:
-                    LOGGER.error("Local fallback image error: %s", e)
-                    return Image.new("RGBA", (1280, 720), (255, 255, 255, 255))
-
-def clean_text(text: str, limit: int = 25) -> str:
-    if not text:
-        return "Unknown"
-    text = text.strip()
-    return f"{text[:limit - 3]}..." if len(text) > limit else text
-
-async def add_controls(img: Image.Image) -> Image.Image:
-    img = img.filter(ImageFilter.GaussianBlur(radius=10))
-    box = (305, 125, 975, 595)
-    region = img.crop(box)
-    try:
-        controls = Image.open("AnonXMusic/assets/controls.png").convert("RGBA")
-        controls = controls.resize((1200, 320), Image.Resampling.LANCZOS)
-        controls = ImageEnhance.Sharpness(controls).enhance(5.0)
-        controls = ImageEnhance.Contrast(controls).enhance(1.0)
-        controls = controls.resize((600, 160), Image.Resampling.LANCZOS)
-        controls_x = 305 + (670 - 600) // 2 
-        controls_y = 415  
-    except Exception as e:
-        LOGGER.error("Controls image loading error: %s", e)
-        controls = Image.new("RGBA", (600, 160), (0, 0, 0, 0))
-        controls_x, controls_y = 335, 415
-
-
-    dark_region = ImageEnhance.Brightness(region).enhance(0.5)
-    mask = Image.new("L", dark_region.size, 0)
-    ImageDraw.Draw(mask).rounded_rectangle(
-        (0, 0, box[2] - box[0], box[3] - box[1]), radius=20, fill=255
-    )
-
-    img.paste(dark_region, box, mask)
-    img.paste(controls, (controls_x, controls_y), controls)
-
-    region.close()
-    controls.close()
-    return img
-
-def make_rounded_rectangle(image: Image.Image, size: tuple = (184, 184)) -> Image.Image:
-    width, height = image.size
-    side_length = min(width, height)
-    crop = image.crop(
-        (
-            (width - side_length) // 2,
-            (height - side_length) // 2,
-            (width + side_length) // 2,
-            (height + side_length) // 2,
-        )
-    )
-    resize = crop.resize(size, Image.Resampling.LANCZOS)
-    mask = Image.new("L", size, 0)
-    ImageDraw.Draw(mask).rounded_rectangle((0, 0, *size), radius=20, fill=255)
-
-    rounded = ImageOps.fit(resize, size)
-    rounded.putalpha(mask)
-    crop.close()
-    resize.close()
-    return rounded
+def trim_to_width(text: str, font: ImageFont.FreeTypeFont, max_w: int) -> str:
+    ellipsis = "…"
+    if font.getlength(text) <= max_w:
+        return text
+    for i in range(len(text) - 1, 0, -1):
+        if font.getlength(text[:i] + ellipsis) <= max_w:
+            return text[:i] + ellipsis
+    return ellipsis
 
 async def get_thumb(videoid: str) -> str:
-    if not videoid or not re.match(r"^[a-zA-Z0-9_-]{11}$", videoid):
-        LOGGER.error("Invalid YouTube video ID: %s", videoid)
-        return ""
+    cache_path = os.path.join(CACHE_DIR, f"{videoid}_v4.png")
+    if os.path.exists(cache_path):
+        return cache_path
 
-    save_dir = f"database/photos/{videoid}.png"
-
+    # YouTube video data fetch
+    results = VideosSearch(f"https://www.youtube.com/watch?v={videoid}", limit=1)
     try:
-        save_dir_parent = "database/photos"
-        if not await aiopath.exists(save_dir_parent):
-            await asyncio.to_thread(os.makedirs, save_dir_parent)
-    except Exception as e:
-        LOGGER.error("Failed to create directory %s: %s", save_dir_parent, e)
-        return ""
+        results_data = await results.next()
+        result_items = results_data.get("result", [])
+        if not result_items:
+            raise ValueError("No results found.")
+        data = result_items[0]
+        title = re.sub(r"\W+", " ", data.get("title", "Unsupported Title")).title()
+        thumbnail = data.get("thumbnails", [{}])[0].get("url", YOUTUBE_IMG_URL)
+        duration = data.get("duration")
+        views = data.get("viewCount", {}).get("short", "Unknown Views")
+    except Exception:
+        title, thumbnail, duration, views = "Unsupported Title", YOUTUBE_IMG_URL, None, "Unknown Views"
 
+    is_live = not duration or str(duration).strip().lower() in {"", "live", "live now"}
+    duration_text = "Live" if is_live else duration or "Unknown Mins"
+
+    # Download thumbnail
+    thumb_path = os.path.join(CACHE_DIR, f"thumb{videoid}.png")
     try:
-        url = f"https://www.youtube.com/watch?v={videoid}"
-        results = VideosSearch(url, limit=1)
-        result = (await results.next())["result"][0]
-        title = clean_text(result.get("title", "Unknown Title"), limit=25)
-        artist = clean_text(result.get("channel", {}).get("name", "Unknown Artist"), limit=28)
-        thumbnail_url = result.get("thumbnails", [{}])[0].get("url", "").split("?")[0]
-    except Exception as e:
-        LOGGER.error("YouTube metadata fetch error for video %s: %s", videoid, e)
-        title, artist = "Unknown Title", "Unknown Artist"
-        thumbnail_url = YOUTUBE_IMG_URL
+        async with aiohttp.ClientSession() as session:
+            async with session.get(thumbnail) as resp:
+                if resp.status == 200:
+                    async with aiofiles.open(thumb_path, "wb") as f:
+                        await f.write(await resp.read())
+    except Exception:
+        return YOUTUBE_IMG_URL
 
-    thumb = await fetch_image(thumbnail_url)
-    bg = await add_controls(thumb)
-    image = make_rounded_rectangle(thumb, size=(184, 184))
+    # Create base image
+    base = Image.open(thumb_path).resize((1280, 720)).convert("RGBA")
+    bg = ImageEnhance.Brightness(base.filter(ImageFilter.BoxBlur(10))).enhance(0.6)
 
-    paste_x, paste_y = 325, 155 
-    bg.paste(image, (paste_x, paste_y), image)
+    # Frosted glass panel
+    panel_area = bg.crop((PANEL_X, PANEL_Y, PANEL_X + PANEL_W, PANEL_Y + PANEL_H))
+    overlay = Image.new("RGBA", (PANEL_W, PANEL_H), (255, 255, 255, TRANSPARENCY))
+    frosted = Image.alpha_composite(panel_area, overlay)
+    mask = Image.new("L", (PANEL_W, PANEL_H), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, PANEL_W, PANEL_H), 50, fill=255)
+    bg.paste(frosted, (PANEL_X, PANEL_Y), mask)
 
-
+    # Draw details
     draw = ImageDraw.Draw(bg)
-    draw.text((540, 155), title, (255, 255, 255), font=FONTS["tfont"])  
-    draw.text((540, 200), artist, (255, 255, 255), font=FONTS["cfont"]) 
-
-
-    bg = ImageEnhance.Contrast(bg).enhance(1.1)
-    bg = ImageEnhance.Color(bg).enhance(1.2)
-
-
     try:
-        await asyncio.to_thread(bg.save, save_dir, format="PNG", quality=95, optimize=True)
-        if await aiopath.exists(save_dir):
-            thumb.close()
-            image.close()
-            bg.close()
-            return save_dir
-        LOGGER.error("Failed to save thumbnail at %s", save_dir)
-    except Exception as e:
-        LOGGER.error("Thumbnail save error for %s: %s", save_dir, e)
+        title_font = ImageFont.truetype("SystemMusic/assets/thumb/font2.ttf", 32)
+        regular_font = ImageFont.truetype("SystemMusic/assets/ISTKHAR/font.ttf", 18)
+    except OSError:
+        title_font = regular_font = ImageFont.load_default()
 
-    thumb.close()
-    image.close()
-    bg.close()
-    return ""
+    thumb = base.resize((THUMB_W, THUMB_H))
+    tmask = Image.new("L", thumb.size, 0)
+    ImageDraw.Draw(tmask).rounded_rectangle((0, 0, THUMB_W, THUMB_H), 20, fill=255)
+    bg.paste(thumb, (THUMB_X, THUMB_Y), tmask)
+
+    draw.text((TITLE_X, TITLE_Y), trim_to_width(title, title_font, MAX_TITLE_WIDTH), fill="black", font=title_font)
+    draw.text((META_X, META_Y), f"YouTube | {views}", fill="black", font=regular_font)
+
+    # Progress bar
+    draw.line([(BAR_X, BAR_Y), (BAR_X + BAR_RED_LEN, BAR_Y)], fill="red", width=6)
+    draw.line([(BAR_X + BAR_RED_LEN, BAR_Y), (BAR_X + BAR_TOTAL_LEN, BAR_Y)], fill="gray", width=5)
+    draw.ellipse([(BAR_X + BAR_RED_LEN - 7, BAR_Y - 7), (BAR_X + BAR_RED_LEN + 7, BAR_Y + 7)], fill="red")
+
+    draw.text((BAR_X, BAR_Y + 15), "00:00", fill="black", font=regular_font)
+    end_text = "Live" if is_live else duration_text
+    draw.text((BAR_X + BAR_TOTAL_LEN - (90 if is_live else 60), BAR_Y + 15), end_text, fill="red" if is_live else "black", font=regular_font)
+
+    # Icons
+    icons_path = "SystemMusic/assets/ISTKHAR/play_icons.png"
+    if os.path.isfile(icons_path):
+        ic = Image.open(icons_path).resize((ICONS_W, ICONS_H)).convert("RGBA")
+        r, g, b, a = ic.split()
+        black_ic = Image.merge("RGBA", (r.point(lambda *_: 0), g.point(lambda *_: 0), b.point(lambda *_: 0), a))
+        bg.paste(black_ic, (ICONS_X, ICONS_Y), black_ic)
+
+    # Cleanup and save
+    try:
+        os.remove(thumb_path)
+    except OSError:
+        pass
+
+    bg.save(cache_path)
+    return cache_path
