@@ -76,12 +76,12 @@ def stream_markup_timer(_, chat_id, played, dur):
             InlineKeyboardButton(text="▢", callback_data=f"ADMIN Stop|{chat_id}"),
         ],
         [
-            InlineKeyboardButton(text="< - 𝟤𝟢 s", callback_data="seek_backward_20"),
+            InlineKeyboardButton(text="< -𝟤𝟢s", callback_data="seek_backward_20"),
                InlineKeyboardButton(text="• ᴘʀᴏᴍᴏ •", url=f"https://t.me/Iamistkhar"),
-            InlineKeyboardButton(text="𝟤𝟢 s + >", callback_data="seek_forward_20")
+            InlineKeyboardButton(text="𝟤𝟢s+ >", callback_data="seek_forward_20")
         ],
         [
-            InlineKeyboardButton(text="⊚ ᴧᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ᴄʜᴧᴛ ⊚", url=f"https://t.me/{app.username}?startgroup=true"),
+            InlineKeyboardButton(text="✚ ʌᴅᴅ ϻє ɪη ʏσυʀ ɢʀσυᴘ ✚", url=f"https://t.me/{app.username}?startgroup=true"),
         ]
     ]
     return buttons
