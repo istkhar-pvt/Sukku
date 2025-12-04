@@ -9,7 +9,7 @@
 import math
 from config import SUPPORT_CHAT, OWNER_USERNAME
 from pyrogram.types import InlineKeyboardButton, WebAppInfo
-from REVANGEMUSIC import app
+from SystemMusic import app
 import config
 from REVANGEMUSIC.utils.formatters import time_to_seconds
 
