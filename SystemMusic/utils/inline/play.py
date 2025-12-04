@@ -11,7 +11,7 @@ from config import SUPPORT_CHAT, OWNER_USERNAME
 from pyrogram.types import InlineKeyboardButton, WebAppInfo
 from SystemMusic import app
 import config
-from REVANGEMUSIC.utils.formatters import time_to_seconds
+from SystemMusic.utils.formatters import time_to_seconds
 
 
 def track_markup(_, videoid, user_id, channel, fplay):
